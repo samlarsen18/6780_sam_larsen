@@ -5,5 +5,13 @@
     ],
     "cmake.preferredGenerators": [
         "Ninja"
-    ]
+    ],
+    "files.associations": {
+        "*.html": "twig",
+        "stm32f0xx_hal_gpio.h": "c",
+        "stm32f0xx_hal_def.h": "c",
+        "stm32f072xb.h": "c",
+        "stddef.h": "c"
+    },
+    "C_Cpp.errorSquiggles": "enabled"
 }
