@@ -9,6 +9,7 @@
 #include "hal_gpio.h"
 
 void SystemClock_Config(void);
+
 void HAL_RCC_GPIOC_CLK_Enable()
 {
   RCC->AHBENR  |= RCC_AHBENR_GPIOCEN;
@@ -20,33 +21,38 @@ void HAL_RCC_GPIOA_CLK_Enable()
 
 int main(void)
 {
-    HAL_Init();           // Reset of all peripherals, init the Flash and Systick
-    SystemClock_Config(); // Configure the system clock
+  HAL_Init();           // Reset of all peripherals, init the Flash and Systick
+  SystemClock_Config(); // Configure the system clock
 
-    // __HAL_RCC_GPIOC_CLK_ENABLE(); // Enable the GPIOC clock in the RCC
-    HAL_RCC_GPIOC_CLK_Enable();
-    HAL_RCC_GPIOA_CLK_Enable();
+  HAL_RCC_GPIOC_CLK_Enable();
+  HAL_RCC_GPIOA_CLK_Enable();
 
+  My_HAL_GPIO_Init(NULL, NULL);
+  assert(GPIOC->MODER & (GPIO_MODER_MODER8_0 | GPIO_MODER_MODER9_0));
 
-    // Set up a configuration struct to pass to the initialization function
-    // RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
-    // GPIO_InitTypeDef initStr = {GPIO_PIN_8 | GPIO_PIN_9 | GPIO_PIN_6 | GPIO_PIN_7,
-    //                             GPIO_MODE_OUTPUT_PP,
-    //                             GPIO_SPEED_FREQ_LOW,
-    //                             GPIO_NOPULL};
-    
-    My_HAL_GPIO_Init(NULL, NULL);
-    assert(GPIOC->MODER & (GPIO_MODER_MODER8_0 | GPIO_MODER_MODER9_0));
-
-
-    My_HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_SET); // Start PC9 low
-    while (1)
-    {
-      HAL_Delay(200); // Delay 200ms
-      // My_HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_8 | GPIO_PIN_9);
-      My_HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_6 | GPIO_PIN_7);
+  uint32_t debouncer = 0;
+  while(1) {
+    debouncer = (debouncer << 1); // Always shift every loop iteration
+    if (My_HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0)) { // If input signal is set/high
+      debouncer |= 0x01; // Set lowest bit of bit-vector
     }
+    if (debouncer == 0xFFFFFFFF) {
+
+    }
+    if (debouncer == 0x00000000) {
+      My_HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6 | GPIO_PIN_7, GPIO_PIN_RESET);
+      My_HAL_GPIO_WritePin(GPIOC, GPIO_PIN_8 | GPIO_PIN_9, GPIO_PIN_SET);
+    }
+    if (debouncer == 0x7FFFFFFF) {
+      My_HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6 | GPIO_PIN_7, GPIO_PIN_SET);
+      My_HAL_GPIO_WritePin(GPIOC, GPIO_PIN_8 | GPIO_PIN_9, GPIO_PIN_RESET);
+    }
+  }
 }
+
+
+
+
 /**
  * @brief System Clock Configuration
  * @retval None
