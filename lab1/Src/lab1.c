@@ -11,8 +11,11 @@
 void SystemClock_Config(void);
 void HAL_RCC_GPIOC_CLK_Enable()
 {
-  // RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
   RCC->AHBENR  |= RCC_AHBENR_GPIOCEN;
+}
+void HAL_RCC_GPIOA_CLK_Enable()
+{
+  RCC->AHBENR  |= RCC_AHBENR_GPIOAEN;
 }
 
 int main(void)
@@ -22,25 +25,26 @@ int main(void)
 
     // __HAL_RCC_GPIOC_CLK_ENABLE(); // Enable the GPIOC clock in the RCC
     HAL_RCC_GPIOC_CLK_Enable();
+    HAL_RCC_GPIOA_CLK_Enable();
+
 
     // Set up a configuration struct to pass to the initialization function
     // RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
-    GPIO_InitTypeDef initStr = {GPIO_PIN_8 | GPIO_PIN_9 | GPIO_PIN_6 | GPIO_PIN_7,
-                                GPIO_MODE_OUTPUT_PP,
-                                GPIO_SPEED_FREQ_LOW,
-                                GPIO_NOPULL};
+    // GPIO_InitTypeDef initStr = {GPIO_PIN_8 | GPIO_PIN_9 | GPIO_PIN_6 | GPIO_PIN_7,
+    //                             GPIO_MODE_OUTPUT_PP,
+    //                             GPIO_SPEED_FREQ_LOW,
+    //                             GPIO_NOPULL};
     
-                                // HAL_GPIO_Init(GPIOC, &initStr);                     // Initialize pins PC8 & PC9
-    // HAL_GPIO_Init(GPIOC, &initStr);
     My_HAL_GPIO_Init(NULL, NULL);
     assert(GPIOC->MODER & (GPIO_MODER_MODER8_0 | GPIO_MODER_MODER9_0));
 
 
-    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_8, GPIO_PIN_SET); // Start PC8 high
+    My_HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_SET); // Start PC9 low
     while (1)
     {
       HAL_Delay(200); // Delay 200ms
-      HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_8 | GPIO_PIN_9); // Toggle PC8 & PC9
+      // My_HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_8 | GPIO_PIN_9);
+      My_HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_6 | GPIO_PIN_7);
     }
 }
 /**
