@@ -5,30 +5,44 @@
 #include <stm32f0xx_hal_rcc.h>
 #include <stm32f0xx_hal_gpio.h>
 #include <stm32f072xb.h>
+#include <assert.h>
+#include "hal_gpio.h"
 
 void SystemClock_Config(void);
+void HAL_RCC_GPIOC_CLK_Enable()
+{
+  // RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
+  RCC->AHBENR  |= RCC_AHBENR_GPIOCEN;
+}
 
 int main(void)
 {
-  HAL_Init();           // Reset of all peripherals, init the Flash and Systick
-  SystemClock_Config(); // Configure the system clock
-  /* This example uses HAL library calls to control
-  the GPIOC peripheral. You’ll be redoing this code
-  with hardware register access. */
-  __HAL_RCC_GPIOC_CLK_ENABLE(); // Enable the GPIOC clock in the RCC
-  // Set up a configuration struct to pass to the initialization function
-  GPIO_InitTypeDef initStr = {GPIO_PIN_8 | GPIO_PIN_9,
-                              GPIO_MODE_OUTPUT_PP,
-                              GPIO_SPEED_FREQ_LOW,
-                              GPIO_NOPULL};
-  HAL_GPIO_Init(GPIOC, &initStr);                     // Initialize pins PC8 & PC9
-  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_8, GPIO_PIN_SET); // Start PC8 high
-  while (1)
-  {
-    HAL_Delay(200); // Delay 200ms
-    // Toggle the output state of both PC8 and PC9
-    HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_8 | GPIO_PIN_9);
-  }
+    HAL_Init();           // Reset of all peripherals, init the Flash and Systick
+    SystemClock_Config(); // Configure the system clock
+
+    // __HAL_RCC_GPIOC_CLK_ENABLE(); // Enable the GPIOC clock in the RCC
+    HAL_RCC_GPIOC_CLK_Enable();
+
+    // Set up a configuration struct to pass to the initialization function
+    // RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
+    GPIO_InitTypeDef initStr = {GPIO_PIN_8 | GPIO_PIN_9 | GPIO_PIN_6 | GPIO_PIN_7,
+                                GPIO_MODE_OUTPUT_PP,
+                                GPIO_SPEED_FREQ_LOW,
+                                GPIO_NOPULL};
+    
+                                // HAL_GPIO_Init(GPIOC, &initStr);                     // Initialize pins PC8 & PC9
+    HAL_GPIO_Init(GPIOC, &initStr);
+    assert(GPIOC->MODER & (GPIO_MODER_MODER8_0 | GPIO_MODER_MODER9_0)); // Assert pins are output
+
+
+    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_8, GPIO_PIN_SET); // Start PC8 high
+    while (1)
+    {
+      HAL_Delay(200); // Delay 200ms
+
+      HAL_Delay(200); // Delay 200ms
+      HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_6 | GPIO_PIN_7); // Toggle PC6 & PC7
+    }
 }
 /**
  * @brief System Clock Configuration
