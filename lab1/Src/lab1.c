@@ -31,17 +31,16 @@ int main(void)
                                 GPIO_NOPULL};
     
                                 // HAL_GPIO_Init(GPIOC, &initStr);                     // Initialize pins PC8 & PC9
-    HAL_GPIO_Init(GPIOC, &initStr);
-    assert(GPIOC->MODER & (GPIO_MODER_MODER8_0 | GPIO_MODER_MODER9_0)); // Assert pins are output
+    // HAL_GPIO_Init(GPIOC, &initStr);
+    My_HAL_GPIO_Init(NULL, NULL);
+    assert(GPIOC->MODER & (GPIO_MODER_MODER8_0 | GPIO_MODER_MODER9_0));
 
 
     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_8, GPIO_PIN_SET); // Start PC8 high
     while (1)
     {
       HAL_Delay(200); // Delay 200ms
-
-      HAL_Delay(200); // Delay 200ms
-      HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_6 | GPIO_PIN_7); // Toggle PC6 & PC7
+      HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_8 | GPIO_PIN_9); // Toggle PC8 & PC9
     }
 }
 /**
