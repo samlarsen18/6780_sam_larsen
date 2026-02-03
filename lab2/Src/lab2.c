@@ -1,8 +1,19 @@
 #include "main.h"
 #include "stm32f0xx_hal.h"
 #include  "hal_gpio.h"
+#include <assert.h>
 
 void SystemClock_Config(void);
+
+void configure_exti(){
+  // enable rising trigger for PA0
+  EXTI->RTSR |= EXTI_RTSR_TR0;
+
+  // enable interrupts on line 0
+  EXTI->IMR |= EXTI_IMR_MR0;
+}
+
+
 
 /**
   * @brief  The application entry point.
@@ -12,6 +23,13 @@ int main(void)
 {
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
+
+  assert(EXTI->RTSR == 0);
+  assert(EXTI->IMR == 0x7F840000);
+  configure_exti();
+  assert(EXTI->RTSR & EXTI_RTSR_TR0);
+  assert(EXTI->IMR & EXTI_IMR_MR0);
+  
   /* Configure the system clock */
   SystemClock_Config();
 
