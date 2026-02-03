@@ -26,6 +26,13 @@ void syscfg_init(){
 
 void EXTI0_1_IRQHandler() {
   My_HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_8 | GPIO_PIN_9);
+
+  int i = 0;
+  while (i++ < 1500000){
+
+  }
+  My_HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_8 | GPIO_PIN_9);
+
   EXTI->PR |= EXTI_PR_PR0;
 }
 
