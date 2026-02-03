@@ -59,7 +59,8 @@ int main(void)
   assert((SYSCFG->EXTICR[0] & SYSCFG_EXTICR1_EXTI0) == 0);
 
   NVIC_EnableIRQ(EXTI0_1_IRQn);
-  NVIC_SetPriority(EXTI0_1_IRQn, 1);  
+  NVIC_SetPriority(EXTI0_1_IRQn, 3);  
+  NVIC_SetPriority(SysTick_IRQn, 2);  
   My_HAL_GPIO_Init(NULL, NULL); 
 
   My_HAL_GPIO_WritePin(GPIOC, GPIO_PIN_9, GPIO_PIN_SET);
