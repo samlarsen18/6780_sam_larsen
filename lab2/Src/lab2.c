@@ -5,7 +5,7 @@
 
 void SystemClock_Config(void);
 
-void configure_exti(){
+void exti_init(){
   // enable rising trigger for PA0
   EXTI->RTSR |= EXTI_RTSR_TR0;
 
@@ -13,7 +13,16 @@ void configure_exti(){
   EXTI->IMR |= EXTI_IMR_MR0;
 }
 
+void rcc_init(){
+  RCC->APB2ENR |= RCC_APB2ENR_SYSCFGCOMPEN; 
+  RCC->AHBENR  |= RCC_AHBENR_GPIOCEN;
+  RCC->AHBENR  |= RCC_AHBENR_GPIOAEN;
+    
+}
 
+void syscfg_init(){
+  SYSCFG->EXTICR[0] |= SYSCFG_EXTICR1_EXTI0_PA;
+}
 
 /**
   * @brief  The application entry point.
@@ -23,10 +32,11 @@ int main(void)
 {
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
-
+  rcc_init();
+  
   assert(EXTI->RTSR == 0);
   assert(EXTI->IMR == 0x7F840000);
-  configure_exti();
+  exti_init();
   assert(EXTI->RTSR & EXTI_RTSR_TR0);
   assert(EXTI->IMR & EXTI_IMR_MR0);
   
