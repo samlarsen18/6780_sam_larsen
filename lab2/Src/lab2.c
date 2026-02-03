@@ -24,6 +24,11 @@ void syscfg_init(){
   SYSCFG->EXTICR[0] |= SYSCFG_EXTICR1_EXTI0_PA;
 }
 
+void EXTI0_1_IRQHandler() {
+  My_HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_8 | GPIO_PIN_9);
+  EXTI->PR |= EXTI_PR_PR0;
+}
+
 /**
   * @brief  The application entry point.
   * @retval int
@@ -32,6 +37,8 @@ int main(void)
 {
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
+  SystemClock_Config();
+
   rcc_init();
   
   assert(EXTI->RTSR == 0);
@@ -40,9 +47,12 @@ int main(void)
   assert(EXTI->RTSR & EXTI_RTSR_TR0);
   assert(EXTI->IMR & EXTI_IMR_MR0);
   
-  /* Configure the system clock */
-  SystemClock_Config();
+  assert((SYSCFG->EXTICR[0] & SYSCFG_EXTICR1_EXTI0) == 0);
+  syscfg_init();
+  assert((SYSCFG->EXTICR[0] & SYSCFG_EXTICR1_EXTI0) == 0);
 
+  NVIC_EnableIRQ(EXTI0_1_IRQn);
+  NVIC_SetPriority(EXTI0_1_IRQn, 1);  
   My_HAL_GPIO_Init(NULL, NULL); 
 
   My_HAL_GPIO_WritePin(GPIOC, GPIO_PIN_9, GPIO_PIN_SET);
@@ -118,3 +128,4 @@ void assert_failed(uint8_t *file, uint32_t line)
      ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
 }
 #endif /* USE_FULL_ASSERT */
+
