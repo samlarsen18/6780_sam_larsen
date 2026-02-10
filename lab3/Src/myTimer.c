@@ -20,8 +20,8 @@ void myTimerInit(void)
 
     TIM3->CCER |= TIM_CCER_CC1E | TIM_CCER_CC2E; // Enable output for OC1 and OC2
 
-    TIM3->CCR1 = 100; // 20% duty cycle for OC1
-    TIM3->CCR2 = 100; // 20% duty cycle for OC2
+    TIM3->CCR1 = 200; // 20% duty cycle for OC1
+    TIM3->CCR2 = 200; // 20% duty cycle for OC2
 }
 
 void myTimerStartTIM2(void)
