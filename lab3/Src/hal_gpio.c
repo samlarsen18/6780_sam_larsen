@@ -1,0 +1,46 @@
+#include <stdint.h>
+#include <stm32f0xx_hal.h>
+#include <stm32f0xx_hal_gpio.h>
+
+
+void My_HAL_GPIO_Init(GPIO_TypeDef  *GPIOx, GPIO_InitTypeDef *GPIO_Init)
+{
+    //LEDs
+    GPIOC->MODER |= GPIO_MODER_MODER6_0 | GPIO_MODER_MODER7_0 | GPIO_MODER_MODER8_0 | GPIO_MODER_MODER9_0;
+    GPIOC->OTYPER &= ~(GPIO_OTYPER_OT_6 | GPIO_OTYPER_OT_7 | GPIO_OTYPER_OT_8 | GPIO_OTYPER_OT_9);
+    GPIOC->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR6_0 | GPIO_OSPEEDER_OSPEEDR7_0 | GPIO_OSPEEDER_OSPEEDR8_0 | GPIO_OSPEEDER_OSPEEDR9_0);
+    GPIOC->PUPDR &= ~(GPIO_PUPDR_PUPDR6 | GPIO_PUPDR_PUPDR7 | GPIO_PUPDR_PUPDR8 | GPIO_PUPDR_PUPDR9);
+
+    // Push Button
+    GPIOA->MODER &= ~GPIO_MODER_MODER0; 
+    GPIOA->OSPEEDR &= ~GPIO_OSPEEDER_OSPEEDR0_0;
+    GPIOA->PUPDR |= GPIO_PUPDR_PUPDR0_1;
+}
+
+
+
+void My_HAL_GPIO_DeInit(GPIO_TypeDef  *GPIOx, uint32_t GPIO_Pin)
+{
+}
+
+
+
+GPIO_PinState My_HAL_GPIO_ReadPin(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin)
+{
+    return GPIOx->IDR & GPIO_Pin ? GPIO_PIN_SET : GPIO_PIN_RESET;
+}
+
+
+
+void My_HAL_GPIO_WritePin(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin, GPIO_PinState PinState)
+{
+    GPIOx->ODR = PinState == GPIO_PIN_SET ? (GPIO_Pin | GPIOx->ODR) : (GPIOx->ODR & ~GPIO_Pin);
+}
+
+
+
+void My_HAL_GPIO_TogglePin(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin)
+{
+    GPIOx->ODR = (GPIO_Pin ^ GPIOx->ODR);
+}
+

@@ -1,7 +1,14 @@
 #include "main.h"
 #include "stm32f0xx_hal.h"
+#include "myTimer.h"
 
 void SystemClock_Config(void);
+
+void rcc_init(){
+  // RCC->APB2ENR |= RCC_APB2ENR_SYSCFGCOMPEN; 
+  RCC->AHBENR  |= RCC_AHBENR_GPIOCEN;
+  RCC->AHBENR  |= RCC_AHBENR_GPIOAEN;
+}
 
 /**
   * @brief  The application entry point.
@@ -14,11 +21,26 @@ int main(void)
   /* Configure the system clock */
   SystemClock_Config();
 
+  rcc_init();
+  myTimerInit();
+  My_HAL_GPIO_Init(NULL, NULL); 
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_9, GPIO_PIN_SET);
+  myTimerStart();
+  NVIC_EnableIRQ(TIM2_IRQn);
+  NVIC_SetPriority(TIM2_IRQn, 3);  
   while (1)
   {
  
   }
   return -1;
+}
+
+void TIM2_IRQHandler(void)
+{
+    if (TIM2->SR & TIM_SR_UIF) {
+        My_HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_8 | GPIO_PIN_9);
+        TIM2->SR &= ~TIM_SR_UIF; 
+    }
 }
 
 /**
