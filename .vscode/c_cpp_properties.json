@@ -9,7 +9,7 @@
             "includePath": [
                 "${default}",
                 "${workspaceFolder}/Drivers/STM32F0xx_HAL_Driver/Inc",
-                "${workspaceFolder}/lab1/Inc",
+                "${workspaceFolder}/lab3/Inc",
                 "${workspaceFolder}/Core/Inc",
                 "${workspaceFolder}/Drivers/CMSIS/Device/ST/STM32F0xx/Include",
                 "${workspaceFolder}/Drivers/CMSIS/Include"
