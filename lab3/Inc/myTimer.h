@@ -2,7 +2,8 @@
 #define myTIMER_H
 
 void myTimerInit(void);
-void myTimerStart(void);
+void myTimerStartTIM2(void);
+void myTimerStartTIM3(void);
 
 
 #endif

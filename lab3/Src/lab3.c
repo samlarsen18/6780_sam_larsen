@@ -27,7 +27,9 @@ int main(void)
   myTimerInit();
   My_HAL_GPIO_Init(NULL, NULL); 
   HAL_GPIO_WritePin(GPIOC, GPIO_PIN_9, GPIO_PIN_SET);
-  myTimerStart();
+  myTimerStartTIM2();
+  myTimerStartTIM3();
+
   NVIC_EnableIRQ(TIM2_IRQn);
   NVIC_SetPriority(TIM2_IRQn, 3);  
   while (1)
