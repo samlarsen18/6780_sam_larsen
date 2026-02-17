@@ -23,6 +23,8 @@ void initialize_UART(void){
   USART3->CR1 |= USART_CR1_TE | USART_CR1_RE; // Enable Transmitter and Receiver
   USART3->BRR = HAL_RCC_GetHCLKFreq() / 115200; // Set baud rate to 115200
   USART3->CR1 |= USART_CR1_UE; // Enable USART
+  USART3->CR1 |= USART_CR1_RXNEIE; // Enable RXNE interruptq
+
 }
 
 void rcc_init(){
@@ -31,9 +33,9 @@ void rcc_init(){
 }
 
 void tx_char(char c) {
-  while((USART3->ISR & USART_ISR_TXE) == 0 && (USART3->ISR & USART_ISR_TC) == 0) { }
+  while((USART3->ISR & USART_ISR_TXE) == 0) { }
   USART3->TDR = c; // Transmit character
-  // HAL_Delay(1);
+  HAL_Delay(1);
 }
 
 void tx_string(char * s, uint8_t len) {
@@ -54,6 +56,11 @@ void SystemClock_Config(void);
   * @brief  The application entry point.
   * @retval int
   */
+
+char g_led = 0;
+uint8_t g_led_state = 0;
+uint8_t g_cmd_received = 0;
+
 int main(void)
 {
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
@@ -63,34 +70,82 @@ int main(void)
   SystemClock_Config();
   initialize_UART();
   My_HAL_GPIO_Init(NULL, NULL);
+  
+  NVIC_EnableIRQ(USART3_4_IRQn);
+  NVIC_SetPriority(USART3_4_IRQn, 3);  
 
   char * string = "Hello!\r\n";
   tx_string(string, strlen(string));
+  tx_string("CMD: \r\n", 7);
   while(1) {
-    char rx = rx_char(); // Wait for a character to be received
-    switch(rx) {
-      case 'r':
-        My_HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_6); // Toggle red LED
-        break;
-      case 'g':
-        My_HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_9); // Toggle green LED
-        break;
-      case 'b':
-        My_HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_7); // Toggle blue LED
-        break;
-      case 'o':
-        My_HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_8); // Toggle blue LED
-        break;
-      default:
-        tx_string("Invalid command: ", 15);
-        tx_char(rx);
-        tx_string("\r\n", 2);
-        break;
+    if(g_cmd_received) {
+      uint16_t pin = 0;
+      switch(g_led) {
+        case 'r':
+          pin = GPIO_PIN_6;
+          break;
+        case 'g':
+          pin = GPIO_PIN_9;
+          break;
+        case 'b':
+          pin = GPIO_PIN_7;
+          break;
+        case 'o':
+          pin = GPIO_PIN_8;
+          break;
+        default:
+          tx_string("Invalid LED: ", 16);
+          tx_char(g_led);
+          tx_string("\r\n", 2);
+          break;
+      }
+      if (pin > 0){
+        switch(g_led_state){
+          case '0':
+            My_HAL_GPIO_WritePin(GPIOC, pin, GPIO_PIN_RESET);
+            break;
+          case '1':
+            My_HAL_GPIO_WritePin(GPIOC, pin, GPIO_PIN_SET);
+            break;
+          case '2':
+            My_HAL_GPIO_TogglePin(GPIOC, pin);
+            break; 
+          default:
+            tx_string("Invalid LED state: ", 20);
+            tx_char(g_led_state);
+            tx_string("\r\n", 2);
+        }
+      }
+      g_cmd_received = 0;
+      tx_string("CMD: \r\n", 7);
     }
   }
 
   return -1;
 }
+
+
+void USART3_4_IRQHandler(void)
+{
+  static uint8_t state = 0;
+  if((USART3->ISR & USART_ISR_RXNE) != 0) {
+    switch(state){
+      case 0:
+        g_led = USART3->RDR;
+        state = 1;
+        break;
+      case 1:
+        g_led_state = USART3->RDR;
+        state = 0;
+        g_cmd_received = 1;
+      default:
+        state = 0;
+        break;
+    }
+  }
+}
+
+
 
 /**
   * @brief System Clock Configuration
