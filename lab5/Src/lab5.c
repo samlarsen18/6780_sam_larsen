@@ -1,7 +1,24 @@
 #include "main.h"
 #include "stm32f0xx_hal.h"
+#include "led.h"
+#include "stm32f0xx_hal_gpio.h"
+#include "i2c.h"
+
+#define L3GD20_WHO_AM_I_REG 0x0F
+#define L3GD20_CTRL_REG1 0x20
+#define L3GD20_X_L 0x28
+#define L3GD20_X_H 0x29
+#define L3GD20_Y_L 0x2A
+#define L3GD20_Y_H 0x2B
+#define L3GD20_ADDRESS 0x69
 
 void SystemClock_Config(void);
+
+void rcc_init(){
+  RCC->AHBENR  |= RCC_AHBENR_GPIOCEN;
+  RCC->AHBENR  |= RCC_AHBENR_GPIOAEN;
+  RCC->AHBENR  |= RCC_AHBENR_GPIOBEN;
+}
 
 /**
   * @brief  The application entry point.
@@ -13,10 +30,42 @@ int main(void)
   HAL_Init();
   /* Configure the system clock */
   SystemClock_Config();
+  rcc_init();
+  LED_Init();
+  i2c_init();
+
+  uint8_t who_am_i = i2c_read_byte(L3GD20_ADDRESS, L3GD20_WHO_AM_I_REG);
+
+  i2c_write_byte(L3GD20_ADDRESS, L3GD20_CTRL_REG1, 0b1011);
 
   while (1)
   {
- 
+
+    int16_t x_axis = (i2c_read_byte(L3GD20_ADDRESS, L3GD20_X_H) << 8) | i2c_read_byte(L3GD20_ADDRESS, L3GD20_X_L);
+    int16_t y_axis = (i2c_read_byte(L3GD20_ADDRESS, L3GD20_Y_H) << 8) | i2c_read_byte(L3GD20_ADDRESS, L3GD20_Y_L);
+
+    if (x_axis > 1000) {
+        LED_Write(LED_GREEN, GPIO_PIN_SET);
+    } else {
+        LED_Write(LED_GREEN, GPIO_PIN_RESET);
+    }
+    if (x_axis < -1000 ) {
+        LED_Write(LED_ORANGE, GPIO_PIN_SET);
+    } else {
+        LED_Write(LED_ORANGE, GPIO_PIN_RESET);
+    }
+    if (y_axis > 1000) {
+        LED_Write(LED_RED, GPIO_PIN_SET);
+    } else {
+        LED_Write(LED_RED, GPIO_PIN_RESET);
+    }
+    if (y_axis < -1000) {
+        LED_Write(LED_BLUE, GPIO_PIN_SET);
+    } else {
+        LED_Write(LED_BLUE, GPIO_PIN_RESET);
+    }
+    
+    HAL_Delay(100);
   }
   return -1;
 }
