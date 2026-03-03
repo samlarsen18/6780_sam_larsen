@@ -1,7 +1,15 @@
 #include "main.h"
 #include "stm32f0xx_hal.h"
+#include "led.h"
+#include "stm32f0xx_hal_gpio.h"
 
 void SystemClock_Config(void);
+
+void rcc_init(){
+  RCC->AHBENR  |= RCC_AHBENR_GPIOCEN;
+  RCC->AHBENR  |= RCC_AHBENR_GPIOAEN;
+  RCC->AHBENR  |= RCC_AHBENR_GPIOBEN;
+}
 
 /**
   * @brief  The application entry point.
@@ -13,10 +21,56 @@ int main(void)
   HAL_Init();
   /* Configure the system clock */
   SystemClock_Config();
+  rcc_init();
+  LED_Init();
+
+  GPIOC->MODER |= GPIO_MODER_MODER3_1 | GPIO_MODER_MODER3_0; // Analog function mode 
+  RCC->APB2ENR  |= RCC_APB2ENR_ADCEN; 
+  ADC1->CFGR1 |= ADC_CFGR1_CONT | ADC_CFGR1_RES_1; 
+  ADC1->CHSELR |= ADC_CHSELR_CHSEL13;
+  
+  ADC1->CR &= ~ADC_CR_ADEN; 
+  ADC1->CFGR1 &= ~ADC_CFGR1_DMAEN;
+  ADC1->CR |= ADC_CR_ADCAL; 
+  while (ADC1->CR & ADC_CR_ADCAL);
+
+  LED_Write(LED_RED, GPIO_PIN_RESET);
+  LED_Write(LED_GREEN, GPIO_PIN_RESET);
+  LED_Write(LED_BLUE, GPIO_PIN_RESET);
+  LED_Write(LED_ORANGE, GPIO_PIN_RESET);
+
+  ADC1->CR |= ADC_CR_ADEN; // Enable ADC
+  while (!(ADC1->ISR & ADC_ISR_ADRDY)); // Wait until ADC is ready 
+  ADC1->CR |= ADC_CR_ADSTART;
+
 
   while (1)
   {
- 
+    // Wait for end-of-conversion before reading
+    while (!(ADC1->ISR & ADC_ISR_EOC));
+    uint8_t adc_value = (uint8_t)ADC1->DR;
+    if (adc_value < 64) {
+      LED_Write(LED_RED, GPIO_PIN_SET); 
+      LED_Write(LED_GREEN, GPIO_PIN_RESET);
+      LED_Write(LED_BLUE, GPIO_PIN_RESET);
+      LED_Write(LED_ORANGE, GPIO_PIN_RESET);
+    } else if (adc_value < 128) {
+      LED_Write(LED_RED, GPIO_PIN_RESET);
+      LED_Write(LED_GREEN, GPIO_PIN_SET);
+      LED_Write(LED_BLUE, GPIO_PIN_RESET);
+      LED_Write(LED_ORANGE, GPIO_PIN_RESET);
+    } else if (adc_value < 192) {
+      LED_Write(LED_RED, GPIO_PIN_RESET);
+      LED_Write(LED_GREEN, GPIO_PIN_RESET);
+      LED_Write(LED_BLUE, GPIO_PIN_SET);
+      LED_Write(LED_ORANGE, GPIO_PIN_RESET);
+    } else {
+      LED_Write(LED_RED, GPIO_PIN_RESET);
+      LED_Write(LED_GREEN, GPIO_PIN_RESET);
+      LED_Write(LED_BLUE, GPIO_PIN_RESET);
+      LED_Write(LED_ORANGE, GPIO_PIN_SET);
+    }
+    HAL_Delay(100); // Delay for stability
   }
   return -1;
 }
