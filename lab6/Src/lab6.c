@@ -11,6 +11,10 @@ void rcc_init(){
   RCC->AHBENR  |= RCC_AHBENR_GPIOBEN;
 }
 
+// Sawtooth Wave: 8-bit, 32 samples/cycle
+const uint8_t sawtooth_table[32] = {0,7,15,23,31,39,47,55,63,71,79,87,95,103,
+111,119,127,134,142,150,158,166,174,182,190,198,206,214,222,230,238,246};
+
 /**
   * @brief  The application entry point.
   * @retval int
@@ -24,11 +28,16 @@ int main(void)
   rcc_init();
   LED_Init();
 
-  GPIOC->MODER |= GPIO_MODER_MODER3_1 | GPIO_MODER_MODER3_0; // Analog function mode 
+  GPIOC->MODER |= GPIO_MODER_MODER3_1 | GPIO_MODER_MODER3_0; // C3 -> ADC_IN13 : Analog function mode 
+  GPIOA->MODER |= GPIO_MODER_MODER4_1 | GPIO_MODER_MODER4_0; // A4 -> DAC_OUT1 : Analog function mode
   RCC->APB2ENR  |= RCC_APB2ENR_ADCEN; 
+  RCC->APB1ENR  |= RCC_APB1ENR_DACEN; 
+  
+  // ADC INIT
   ADC1->CFGR1 |= ADC_CFGR1_CONT | ADC_CFGR1_RES_1; 
   ADC1->CHSELR |= ADC_CHSELR_CHSEL13;
   
+  // ADC Calibration
   ADC1->CR &= ~ADC_CR_ADEN; 
   ADC1->CFGR1 &= ~ADC_CFGR1_DMAEN;
   ADC1->CR |= ADC_CR_ADCAL; 
@@ -43,9 +52,17 @@ int main(void)
   while (!(ADC1->ISR & ADC_ISR_ADRDY)); // Wait until ADC is ready 
   ADC1->CR |= ADC_CR_ADSTART;
 
+    // DAC INIT
+  DAC1->CR |= DAC_CR_TSEL1_0 | DAC_CR_TSEL1_1 | DAC_CR_TSEL1_2; // Trigger on software
+  DAC1->CR |= DAC_CR_TEN1; // Enable trigger for DAC channel 1
+  DAC1->CR |= DAC_CR_EN1; // Enable DAC channel 1
 
+  uint8_t index = 0;
   while (1)
   {
+    DAC1->DHR8R1 = sawtooth_table[index];
+    DAC1->SWTRIGR |= DAC_SWTRIGR_SWTRIG1; // Trigger DAC conversion
+
     // Wait for end-of-conversion before reading
     while (!(ADC1->ISR & ADC_ISR_EOC));
     uint8_t adc_value = (uint8_t)ADC1->DR;
@@ -70,7 +87,9 @@ int main(void)
       LED_Write(LED_BLUE, GPIO_PIN_RESET);
       LED_Write(LED_ORANGE, GPIO_PIN_SET);
     }
-    HAL_Delay(100); // Delay for stability
+    index++;
+    if (index >= 32) index = 0;
+    HAL_Delay(1); // Delay for stability
   }
   return -1;
 }
