@@ -6,6 +6,7 @@ extern "C" {
 #endif
 
 void Error_Handler(void);
+void Lab7_SysTick_Handler(void);
 
 #ifdef __cplusplus
 }
