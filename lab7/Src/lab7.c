@@ -59,11 +59,11 @@ void Lab7_SysTick_Handler(void) {
             case 50:
                 target_rpm = 81;
                 break;
-            case 1:
+            case 0:
                 target_rpm = 80;
                 break;
             default:
-                target_rpm = 1;
+                target_rpm = 0;
                 break;
         }
         __enable_irq();

@@ -64,10 +64,10 @@
             "graphConfig": [
                 {
                     "label": "Graph 1",
-                    "timespan": 5,
+                    "timespan": 1,
                     "type": "realtime",
                     "annotate": false,
-                    "maximum": 256,
+                    "maximum": 120,
                     "minimum": 0,
                     "plots": [
                         {

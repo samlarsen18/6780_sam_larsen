@@ -15,8 +15,8 @@ volatile int16_t target_rpm = 0;    	// Desired speed target
 volatile int16_t motor_speed = 0;   	// Measured motor speed
 volatile int8_t adc_value = 0;      	// ADC measured motor current
 volatile int16_t error = 0;         	// Speed error signal
-volatile uint8_t Kp = 1;            	// Proportional gain
-volatile uint8_t Ki = 1;            	// Integral gain
+volatile uint8_t Kp = 20;            	// Proportional gain
+volatile uint8_t Ki = 10;            	// Integral gain
 
 // Sets up the entire motor drive system
 void motor_init(void) {
@@ -190,7 +190,8 @@ void PI_update(void) {
      * adc_value -> raw ADC counts to report current
      *
      */
-    int speed_rpm = (motor_speed / 3200) * (1 / 0.020) * 60;
+    // int speed_rpm = (motor_speed / 3200) * (1 / 0.020) * 60;
+    int speed_rpm = (motor_speed);
     error = target_rpm - speed_rpm;
 
     /// TODO: calculate error signal and write to "error" variable
@@ -203,7 +204,7 @@ void PI_update(void) {
     
     
     /// TODO: Calculate integral portion of PI controller, write to "error_integral" variable
-    error_integral += error * .020;
+    error_integral += error;
 
     /// TODO: Clamp the value of the integral to a limited positive range
     /* Hint: The value clamp is needed to prevent excessive "windup" in the integral.
@@ -220,8 +221,8 @@ void PI_update(void) {
     
     /// TODO: Calculate proportional portion, add integral and write to "output" variable
     uint16_t kp = 20;
-    uint16_t ki = 1;
-    int16_t output = error * kp + error_integral * ki;
+    uint16_t ki = 10;
+    int16_t output = (error * kp) + (error_integral * ki);
 
     /* Because the calculated values for the PI controller are significantly larger than 
      * the allowable range for duty cycle, you'll need to divide the result down into 
